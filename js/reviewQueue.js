@@ -326,7 +326,7 @@ const ReviewQueue = {
       if (videoSrc && !videoSrc.startsWith('content://') && !videoSrc.startsWith('file://')) {
         container.innerHTML = `
           <div style="background:#000;border-radius:8px;overflow:hidden;margin-bottom:14px;display:flex;flex-direction:column;align-items:center;">
-            <video id="preview-video-element" controls playsinline autoplay style="width:100%;max-height:440px;background:#000;object-fit:contain;" onerror="const b = document.getElementById('video-error-badge'); if(b) b.style.display='block';">
+            <video id="preview-video-element" controls playsinline crossorigin="anonymous" preload="metadata" style="width:100%;max-height:440px;background:#000;object-fit:contain;" src="${videoSrc}" onplaying="const b = document.getElementById('video-error-badge'); if(b) b.style.display='none';" onerror="const b = document.getElementById('video-error-badge'); if(b) b.style.display='block';">
               <source src="${videoSrc}" type="video/mp4">
               Your browser does not support HTML5 video playback.
             </video>
