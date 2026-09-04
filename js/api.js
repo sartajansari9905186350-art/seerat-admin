@@ -117,5 +117,25 @@ const Api = {
 
   delete(endpoint) {
     return this.request(endpoint, { method: 'DELETE' });
+  },
+
+  async upload(endpoint, formData) {
+    const token = this.getToken();
+    const headers = {
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: 'POST',
+      headers,
+      body: formData
+    });
+
+    const json = await response.json();
+    if (!response.ok) {
+      const errorMessage = json.error?.message || json.message || 'File upload failed';
+      throw new Error(errorMessage);
+    }
+    return json;
   }
 };

@@ -51,6 +51,28 @@ const Auth = {
         App.showToast('Please contact the Platform Super Admin to initiate password reset.', 'info');
       });
     }
+
+    const headerProfileBtn = document.getElementById('header-profile-btn');
+    if (headerProfileBtn) {
+      headerProfileBtn.addEventListener('click', () => this.openProfileModal());
+    }
+
+    const adminProfileBtn = document.getElementById('admin-profile-btn');
+    if (adminProfileBtn) {
+      adminProfileBtn.addEventListener('click', () => this.openProfileModal());
+    }
+
+    const choosePhotoBtn = document.getElementById('btn-admin-choose-photo');
+    const photoFileInput = document.getElementById('admin-photo-file-input');
+    if (choosePhotoBtn && photoFileInput) {
+      choosePhotoBtn.addEventListener('click', () => photoFileInput.click());
+      photoFileInput.addEventListener('change', (e) => this.handleFileInputChange(e));
+    }
+
+    const removePhotoBtn = document.getElementById('btn-admin-remove-photo');
+    if (removePhotoBtn) {
+      removePhotoBtn.addEventListener('click', () => this.handlePhotoRemove());
+    }
   },
 
   async handleLogin(e) {
@@ -134,14 +156,129 @@ const Auth = {
     nameEls.forEach(el => el.textContent = this.currentAdmin.name || 'Admin');
     roleEls.forEach(el => el.textContent = this.currentAdmin.role === 'SUPER_ADMIN' ? 'SUPER ADMIN' : 'MODERATOR');
 
+    const avatarUrl = this.currentAdmin.avatarUrl || this.currentAdmin.admin_profile_photo_url;
     avatarEls.forEach(el => {
-      if (this.currentAdmin.avatarUrl) {
-        el.innerHTML = `<img src="${this.currentAdmin.avatarUrl}" style="width:100%;height:100%;border-radius:9999px;object-fit:cover;">`;
+      if (avatarUrl) {
+        el.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;border-radius:9999px;object-fit:cover;">`;
       } else {
         const initials = (this.currentAdmin.name || 'A').split(' ').map(n => n[0]).join('').slice(0, 2);
         el.textContent = initials;
       }
     });
+  },
+
+  openProfileModal() {
+    if (!this.currentAdmin) return;
+    const modalName = document.getElementById('admin-profile-modal-name');
+    const modalEmail = document.getElementById('admin-profile-modal-email');
+    const modalAvatar = document.getElementById('admin-profile-modal-avatar');
+    const removeBtn = document.getElementById('btn-admin-remove-photo');
+
+    if (modalName) modalName.textContent = this.currentAdmin.name || 'Administrator';
+    if (modalEmail) modalEmail.textContent = this.currentAdmin.email || '';
+
+    const avatarUrl = this.currentAdmin.avatarUrl || this.currentAdmin.admin_profile_photo_url;
+    if (modalAvatar) {
+      if (avatarUrl) {
+        modalAvatar.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:9999px;">`;
+      } else {
+        const initials = (this.currentAdmin.name || 'A').split(' ').map(n => n[0]).join('').slice(0, 2);
+        modalAvatar.textContent = initials;
+      }
+    }
+
+    if (removeBtn) {
+      removeBtn.style.display = avatarUrl ? 'inline-flex' : 'none';
+    }
+
+    App.openModal('modal-admin-profile');
+  },
+
+  async handleFileInputChange(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input so selecting the same file again triggers change event
+    e.target.value = '';
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      App.showToast('Please select a valid image (JPG, PNG, or WEBP).', 'warning');
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      App.showToast('Photo size must not exceed 5 MB.', 'warning');
+      return;
+    }
+
+    await this.handlePhotoUpload(file);
+  },
+
+  async handlePhotoUpload(file) {
+    const spinner = document.getElementById('admin-photo-upload-spinner');
+    const uploadBtn = document.getElementById('btn-admin-choose-photo');
+    const removeBtn = document.getElementById('btn-admin-remove-photo');
+
+    try {
+      if (spinner) spinner.classList.remove('hidden');
+      if (uploadBtn) uploadBtn.disabled = true;
+      if (removeBtn) removeBtn.disabled = true;
+
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      const response = await Api.upload('/auth/profile-photo', formData);
+      if (response.success && response.data) {
+        const photoUrl = response.data.photo_url;
+        this.currentAdmin.avatarUrl = photoUrl;
+        this.currentAdmin.admin_profile_photo_url = photoUrl;
+        Api.setCurrentAdmin(this.currentAdmin);
+
+        this.renderAdminProfile();
+        this.openProfileModal(); // Refresh modal view
+        App.showToast('Profile photo updated successfully!', 'success');
+      } else {
+        throw new Error(response.error || 'Failed to upload profile photo');
+      }
+    } catch (err) {
+      App.showToast(err.message || 'Failed to upload profile photo', 'error');
+    } finally {
+      if (spinner) spinner.classList.add('hidden');
+      if (uploadBtn) uploadBtn.disabled = false;
+      if (removeBtn) removeBtn.disabled = false;
+    }
+  },
+
+  async handlePhotoRemove() {
+    const spinner = document.getElementById('admin-photo-upload-spinner');
+    const uploadBtn = document.getElementById('btn-admin-choose-photo');
+    const removeBtn = document.getElementById('btn-admin-remove-photo');
+
+    try {
+      if (spinner) spinner.classList.remove('hidden');
+      if (uploadBtn) uploadBtn.disabled = true;
+      if (removeBtn) removeBtn.disabled = true;
+
+      const response = await Api.delete('/auth/profile-photo');
+      if (response.success) {
+        this.currentAdmin.avatarUrl = null;
+        this.currentAdmin.admin_profile_photo_url = null;
+        Api.setCurrentAdmin(this.currentAdmin);
+
+        this.renderAdminProfile();
+        this.openProfileModal(); // Refresh modal view
+        App.showToast('Profile photo removed successfully.', 'info');
+      } else {
+        throw new Error(response.error || 'Failed to remove photo');
+      }
+    } catch (err) {
+      App.showToast(err.message || 'Failed to remove profile photo', 'error');
+    } finally {
+      if (spinner) spinner.classList.add('hidden');
+      if (uploadBtn) uploadBtn.disabled = false;
+      if (removeBtn) removeBtn.disabled = false;
+    }
   },
 
   applyRoleRestrictions() {

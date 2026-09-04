@@ -472,6 +472,10 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Empty States */
 .empty-state {
   text-align: center;
