@@ -322,32 +322,55 @@ const ReviewQueue = {
 
     // 1. MEDIA DISPLAY / VIDEO PLAYER
     if (isVideo) {
-      const videoSrc = item.media_url || item.video_url || 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4';
-      container.innerHTML = `
-        <div style="background:#000;border-radius:8px;overflow:hidden;margin-bottom:14px;display:flex;flex-direction:column;align-items:center;">
-          <video id="preview-video-element" controls playsinline autoplay style="width:100%;max-height:440px;background:#000;object-fit:contain;">
-            <source src="${videoSrc}" type="video/mp4">
-            Your browser does not support HTML5 video playback.
-          </video>
-          <div style="width:100%;background:#0f172a;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;color:#cbd5e1;font-size:12px;">
-            <div style="display:flex;align-items:center;gap:8px;">
-              <button type="button" class="btn-ghost btn-sm" style="color:#fff;padding:4px 8px;" onclick="const v=document.getElementById('preview-video-element'); if(v) v.paused?v.play():v.pause();">⏯ Play/Pause</button>
-              <button type="button" class="btn-ghost btn-sm" style="color:#fff;padding:4px 8px;" onclick="const v=document.getElementById('preview-video-element'); if(v) v.muted=!v.muted;">🔇 Mute/Unmute</button>
-              <button type="button" class="btn-ghost btn-sm" style="color:#fff;padding:4px 8px;" onclick="const v=document.getElementById('preview-video-element'); if(v) v.currentTime=Math.max(0,v.currentTime-10);">⏪ -10s</button>
-              <button type="button" class="btn-ghost btn-sm" style="color:#fff;padding:4px 8px;" onclick="const v=document.getElementById('preview-video-element'); if(v) v.currentTime+=10;">⏩ +10s</button>
-            </div>
-            <div style="display:flex;align-items:center;gap:6px;">
-              <span>Speed:</span>
-              <select onchange="const v=document.getElementById('preview-video-element'); if(v) v.playbackRate=parseFloat(this.value);" style="background:#1e293b;color:#fff;border:1px solid #475569;border-radius:4px;padding:2px 6px;font-size:11px;">
-                <option value="0.75">0.75x</option>
-                <option value="1.0" selected>1.0x</option>
-                <option value="1.25">1.25x</option>
-                <option value="1.5">1.5x</option>
-              </select>
+      const videoSrc = item.media_url || item.video_url;
+      if (videoSrc && !videoSrc.startsWith('content://') && !videoSrc.startsWith('file://')) {
+        container.innerHTML = `
+          <div style="background:#000;border-radius:8px;overflow:hidden;margin-bottom:14px;display:flex;flex-direction:column;align-items:center;">
+            <video id="preview-video-element" controls playsinline autoplay style="width:100%;max-height:440px;background:#000;object-fit:contain;" onerror="const b = document.getElementById('video-error-badge'); if(b) b.style.display='block';">
+              <source src="${videoSrc}" type="video/mp4">
+              Your browser does not support HTML5 video playback.
+            </video>
+            <div style="width:100%;background:#0f172a;padding:8px 14px;display:flex;align-items:center;justify-content:space-between;color:#cbd5e1;font-size:12px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <button type="button" class="btn-ghost btn-sm" style="color:#fff;padding:4px 8px;" onclick="const v=document.getElementById('preview-video-element'); if(v) v.paused?v.play():v.pause();">⏯ Play/Pause</button>
+                <button type="button" class="btn-ghost btn-sm" style="color:#fff;padding:4px 8px;" onclick="const v=document.getElementById('preview-video-element'); if(v) v.muted=!v.muted;">🔇 Mute/Unmute</button>
+                <button type="button" class="btn-ghost btn-sm" style="color:#fff;padding:4px 8px;" onclick="const v=document.getElementById('preview-video-element'); if(v) v.currentTime=Math.max(0,v.currentTime-10);">⏪ -10s</button>
+                <button type="button" class="btn-ghost btn-sm" style="color:#fff;padding:4px 8px;" onclick="const v=document.getElementById('preview-video-element'); if(v) v.currentTime+=10;">⏩ +10s</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span>Speed:</span>
+                <select onchange="const v=document.getElementById('preview-video-element'); if(v) v.playbackRate=parseFloat(this.value);" style="background:#1e293b;color:#fff;border:1px solid #475569;border-radius:4px;padding:2px 6px;font-size:11px;">
+                  <option value="0.75">0.75x</option>
+                  <option value="1.0" selected>1.0x</option>
+                  <option value="1.25">1.25x</option>
+                  <option value="1.5">1.5x</option>
+                </select>
+              </div>
             </div>
           </div>
-        </div>
-      `;
+          <div id="video-error-badge" style="display:none;padding:12px;background:#fef2f2;border:1px solid #f87171;border-radius:8px;text-align:center;color:#b91c1c;margin-bottom:14px;font-size:13px;">
+            <strong>⚠️ Playback Error:</strong> Unable to stream video bytes from production URL: <code>${App.escapeHtml(videoSrc)}</code>
+          </div>
+        `;
+      } else if (videoSrc && (videoSrc.startsWith('content://') || videoSrc.startsWith('file://'))) {
+        container.innerHTML = `
+          <div style="padding:32px 20px;background:#fef2f2;border:1px solid #f87171;border-radius:8px;text-align:center;color:#b91c1c;margin-bottom:14px;">
+            <div style="font-size:24px;margin-bottom:8px;">⚠️</div>
+            <div style="font-weight:700;font-size:14px;margin-bottom:6px;">Unplayable Local Device URI</div>
+            <p style="font-size:12px;color:#7f1d1d;word-break:break-all;margin-bottom:4px;">
+              Legacy submission used a client-side Android picker URI:
+            </p>
+            <code style="font-size:11px;background:#fee2e2;padding:4px 8px;border-radius:4px;word-break:break-all;display:inline-block;">${App.escapeHtml(videoSrc)}</code>
+            <p style="font-size:12px;color:#7f1d1d;margin-top:8px;">Video bytes were not transmitted to server storage. Please reject this legacy item or re-upload from Android app.</p>
+          </div>
+        `;
+      } else {
+        container.innerHTML = `
+          <div style="padding:40px;background:var(--bg-subtle);border-radius:8px;text-align:center;color:var(--text-muted);margin-bottom:14px;">
+            <p>No video media attached to this submission.</p>
+          </div>
+        `;
+      }
     } else if (item.media_url || item.thumbnail_url) {
       const imgSrc = item.media_url || item.thumbnail_url;
       container.innerHTML = `
