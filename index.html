@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEERAT - Production Islamic Moderation & Admin Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/charts.css">
+  <style>
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- ====================================================================
+       1. SECURE ADMIN AUTHENTICATION SCREEN
+       ==================================================================== -->
+  <div id="login-view" style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f8fafc; padding: 24px;">
+    <div class="card" style="width: 100%; max-width: 440px; padding: 36px 32px; box-shadow: var(--shadow-lg);">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <span class="brand-badge" style="font-size: 15px; padding: 6px 12px;">SEERAT</span>
+          <span class="brand-subtitle" style="font-size: 11px;">ADMIN PORTAL</span>
+        </div>
+        <h1 style="font-size: 20px; font-weight: 700; color: var(--text-main); margin-top: 6px;">Sign In to Administration</h1>
+        <p style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">Islamic Content Moderation & Platform Control</p>
+      </div>
+
+      <div id="login-error" class="hidden" style="background: var(--danger-50); color: var(--danger-600); padding: 12px 14px; border-radius: var(--radius-md); font-size: 13px; margin-bottom: 20px; border-left: 4px solid var(--danger-600);"></div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="login-email">Administrative Email</label>
+          <input type="email" id="login-email" class="form-control" placeholder="name@seerat.app" required autocomplete="email">
+        </div>
+
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label" for="login-password" style="margin-bottom: 0;">Password</label>
+            <button type="button" id="toggle-password" class="btn-ghost btn-sm" style="padding: 0 4px; font-size: 12px; color: var(--primary-700);">Show</button>
+          </div>
+          <input type="password" id="login-password" class="form-control" placeholder="••••••••••••" required autocomplete="current-password">
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+          <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-muted); cursor: pointer;">
+            <input type="checkbox" id="login-remember" style="accent-color: var(--primary-700);">
+            <span>Remember this device</span>
+          </label>
+          <a href="#" id="forgot-password-link" style="font-size: 12.5px; color: var(--primary-700); text-decoration: none; font-weight: 600;">Forgot Password?</a>
+        </div>
+
+        <button type="submit" id="login-submit-btn" class="btn btn-primary" style="width: 100%; padding: 11px; font-size: 14px;">Sign In to Portal</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       2. MAIN APP DASHBOARD LAYOUT
+       ==================================================================== -->
+  <div id="app-layout" class="hidden">
+    <!-- Sidebar Backdrop for Mobile -->
+    <div class="sidebar-backdrop"></div>
+
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <span class="brand-badge">SEERAT</span>
+        <div>
+          <div class="brand-title">ADMIN <span class="brand-subtitle">PORTAL</span></div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Core Moderation</div>
+        <button class="nav-item active" data-tab="dashboard">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" data-tab="review-queue">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+          <span>Review Queue</span>
+          <span class="nav-count" id="nav-badge-review">4</span>
+        </button>
+        <button class="nav-item" data-tab="content">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          <span>Content Management</span>
+        </button>
+        <button class="nav-item" data-tab="users">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>Users</span>
+        </button>
+        <button class="nav-item" data-tab="reports">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          <span>Reports</span>
+          <span class="nav-count" id="nav-badge-reports" style="background:var(--danger-50);color:var(--danger-600)">3</span>
+        </button>
+
+        <div class="nav-section-title super-admin-only">System & Security</div>
+        <button class="nav-item super-admin-only" data-tab="admins">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span>Admin Management</span>
+        </button>
+        <button class="nav-item" data-tab="audit">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Audit Logs</span>
+        </button>
+        <button class="nav-item super-admin-only" data-tab="settings">
+          <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span>Platform Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="admin-profile-pill">
+          <div class="admin-avatar admin-avatar-img">A</div>
+          <div class="admin-info">
+            <div class="admin-name admin-profile-name">Administrator</div>
+            <div class="admin-role-badge admin-profile-role">SUPER ADMIN</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Workspace -->
+    <div class="main-wrapper">
+      <!-- Top Sticky Header -->
+      <header class="top-header">
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Open Navigation">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+
+          <div class="header-search">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="global-search-input" placeholder="Global Search: Users, Posts, Reels, Reports, Content IDs...">
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- Notification Center -->
+          <div style="position: relative;">
+            <button id="btn-notifications" class="btn-icon-badge" title="Notifications">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+              <span id="notification-badge-count" class="badge-counter hidden">0</span>
+            </button>
+
+            <!-- Notifications Dropdown -->
+            <div id="notifications-dropdown" class="card hidden" style="position: absolute; right: 0; top: 48px; width: 340px; padding: 0; z-index: 60; box-shadow: var(--shadow-modal);">
+              <div style="padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: center; justify-content: space-between;">
+                <div style="font-weight: 700; font-size: 13.5px;">Moderation Alerts</div>
+                <button id="btn-mark-all-read" class="btn-ghost btn-sm" style="font-size: 11.5px; color: var(--primary-700);">Mark all read</button>
+              </div>
+              <div id="notifications-list-container" style="max-height: 320px; overflow-y: auto;"></div>
+            </div>
+          </div>
+
+          <button id="logout-btn" class="btn btn-secondary btn-sm" style="font-size: 12.5px;">Sign Out</button>
+        </div>
+      </header>
+
+      <!-- Main Page Dynamic Content Views -->
+      <main class="page-content">
+
+        <!-- ==========================================
+             VIEW: DASHBOARD
+             ========================================== -->
+        <section id="view-dashboard" class="tab-view">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Executive Dashboard</h1>
+              <div class="page-desc">SEERAT Islamic Social & Reels Moderation Overview</div>
+            </div>
+            <button class="btn btn-primary" onclick="App.switchTab('review-queue')">Open Review Queue</button>
+          </div>
+
+          <!-- Statistics KPI Cards -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-data">
+                <div class="metric-label">Total Users</div>
+                <div class="metric-value" id="metric-total-users">-</div>
+              </div>
+              <div class="metric-icon-wrap info">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-data">
+                <div class="metric-label">Active Users</div>
+                <div class="metric-value" id="metric-active-users">-</div>
+              </div>
+              <div class="metric-icon-wrap">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-data">
+                <div class="metric-label">Pending Reviews</div>
+                <div class="metric-value" id="metric-pending-reviews">-</div>
+              </div>
+              <div class="metric-icon-wrap pending">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-data">
+                <div class="metric-label">Approved Content</div>
+                <div class="metric-value" id="metric-approved-content">-</div>
+              </div>
+              <div class="metric-icon-wrap">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-data">
+                <div class="metric-label">Reports Filed</div>
+                <div class="metric-value" id="metric-reported-content">-</div>
+              </div>
+              <div class="metric-icon-wrap danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-data">
+                <div class="metric-label">Suspended Users</div>
+                <div class="metric-value" id="metric-suspended-users">-</div>
+              </div>
+              <div class="metric-icon-wrap danger">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Charts 2x2 Grid -->
+          <div class="charts-grid">
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">New Users Over Time</div>
+                <div class="chart-subtitle">Last 7 days</div>
+              </div>
+              <div id="chart-users-trend" class="chart-container"></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">Content Submissions (Posts & Reels)</div>
+                <div class="chart-subtitle">Last 7 days</div>
+              </div>
+              <div id="chart-content-trend" class="chart-container"></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">Approved vs Rejected Submissions</div>
+                <div class="chart-subtitle">Moderation Ratio</div>
+              </div>
+              <div id="chart-approval-ratio" class="chart-container"></div>
+            </div>
+
+            <div class="chart-card">
+              <div class="chart-header">
+                <div class="chart-title">User Reports Over Time</div>
+                <div class="chart-subtitle">Platform Safety</div>
+              </div>
+              <div id="chart-reports-trend" class="chart-container"></div>
+            </div>
+          </div>
+
+          <!-- Quick Actions & Pending Queue Preview -->
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Pending Review Queue (Quick Action)</div>
+                <button class="btn-ghost btn-sm" onclick="App.switchTab('review-queue')">View All →</button>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Creator</th>
+                      <th>Type</th>
+                      <th>Category</th>
+                      <th>Submitted</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboard-pending-tbody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Recent Admin Activity</div>
+                <button class="btn-ghost btn-sm" onclick="App.switchTab('audit')">Audit Logs →</button>
+              </div>
+              <div id="dashboard-activities-list" style="max-height: 380px; overflow-y: auto;"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW: REVIEW QUEUE
+             ========================================== -->
+        <section id="view-review-queue" class="tab-view hidden">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Islamic Content Review Queue</h1>
+              <div class="page-desc">Verify Islamic authenticity, theological accuracy, and content safety before publishing.</div>
+            </div>
+          </div>
+
+          <!-- Status Tabs -->
+          <div class="tabs-bar" id="review-tabs">
+            <button class="tab-btn active" data-status="PENDING_REVIEW">Pending Review</button>
+            <button class="tab-btn" data-status="APPROVED">Approved</button>
+            <button class="tab-btn" data-status="REJECTED">Rejected</button>
+            <button class="tab-btn" data-status="FLAGGED">Flagged / Senior Review</button>
+            <button class="tab-btn" data-status="ALL">All Submissions</button>
+          </div>
+
+          <!-- Filter Controls -->
+          <div class="filter-bar">
+            <div class="filter-group">
+              <select id="review-filter-type" class="select-control">
+                <option value="ALL">All Formats (Posts & Reels)</option>
+                <option value="REEL">Reels (Video)</option>
+                <option value="POST">Posts (Feed)</option>
+              </select>
+
+              <select id="review-filter-category" class="select-control">
+                <option value="ALL">All Categories</option>
+                <option value="quran">Quran</option>
+                <option value="hadith">Hadith</option>
+                <option value="dua">Dua</option>
+                <option value="bayan">Bayan</option>
+                <option value="zikr">Zikr</option>
+                <option value="seerah">Seerah</option>
+                <option value="reminder">Islamic Reminder</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <input type="text" id="review-filter-search" class="input-control" placeholder="Search caption, creator, or reference..." style="width: 260px;">
+            </div>
+          </div>
+
+          <!-- Queue Table -->
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Creator</th>
+                  <th>Content / Caption</th>
+                  <th>Format</th>
+                  <th>Category</th>
+                  <th>Submitted Date</th>
+                  <th>Status</th>
+                  <th>Moderation Actions</th>
+                </tr>
+              </thead>
+              <tbody id="review-queue-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW: CONTENT MANAGEMENT
+             ========================================== -->
+        <section id="view-content" class="tab-view hidden">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Content Management</h1>
+              <div class="page-desc">Comprehensive database of all user posts, reels, and archived records.</div>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <select id="content-filter-type" class="select-control">
+                <option value="ALL">All Types</option>
+                <option value="POST">Posts Only</option>
+                <option value="REEL">Reels Only</option>
+              </select>
+
+              <select id="content-filter-status" class="select-control">
+                <option value="ALL">All Statuses</option>
+                <option value="APPROVED">Approved</option>
+                <option value="PENDING_REVIEW">Pending Review</option>
+                <option value="REJECTED">Rejected</option>
+                <option value="REMOVED">Removed</option>
+              </select>
+
+              <select id="content-filter-category" class="select-control">
+                <option value="ALL">All Categories</option>
+                <option value="quran">Quran</option>
+                <option value="hadith">Hadith</option>
+                <option value="dua">Dua</option>
+                <option value="bayan">Bayan</option>
+                <option value="zikr">Zikr</option>
+                <option value="seerah">Seerah</option>
+                <option value="reminder">Islamic Reminder</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <input type="text" id="content-filter-search" class="input-control" placeholder="Filter by ID, username, caption..." style="width: 260px;">
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Content ID</th>
+                  <th>Creator</th>
+                  <th>Type</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Created Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="content-table-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW: USERS MANAGEMENT
+             ========================================== -->
+        <section id="view-users" class="tab-view hidden">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Users Registry & Moderation</h1>
+              <div class="page-desc">Inspect registered accounts, follower engagement, and enforce community standing.</div>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <select id="users-filter-status" class="select-control">
+                <option value="ALL">All Statuses</option>
+                <option value="ACTIVE">Active Accounts</option>
+                <option value="SUSPENDED">Suspended Accounts</option>
+                <option value="DISABLED">Disabled Accounts</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <input type="text" id="users-filter-search" class="input-control" placeholder="Search name, username, email, ID..." style="width: 280px;">
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>User Profile</th>
+                  <th>Email Address</th>
+                  <th>Status</th>
+                  <th>Followers</th>
+                  <th>Content Count</th>
+                  <th>Joined Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="users-table-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW: REPORTS
+             ========================================== -->
+        <section id="view-reports" class="tab-view hidden">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Community Reports & Safety Triage</h1>
+              <div class="page-desc">Investigate user flagging for non-Islamic content, copyright, harassment, or theological inaccuracies.</div>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <select id="reports-filter-status" class="select-control">
+                <option value="ALL">All Report Statuses</option>
+                <option value="OPEN">Open Reports</option>
+                <option value="UNDER_REVIEW">Under Review</option>
+                <option value="RESOLVED">Resolved</option>
+                <option value="DISMISSED">Dismissed</option>
+              </select>
+
+              <select id="reports-filter-reason" class="select-control">
+                <option value="ALL">All Reasons</option>
+                <option value="WRONG_INFO">Wrong Information</option>
+                <option value="INAPPROPRIATE">Inappropriate Content</option>
+                <option value="SPAM">Spam</option>
+                <option value="HARASSMENT">Harassment</option>
+                <option value="COPYRIGHT">Copyright</option>
+                <option value="FAKE_ACCOUNT">Fake Account</option>
+                <option value="OTHER">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Report ID</th>
+                  <th>Reporter</th>
+                  <th>Target Type</th>
+                  <th>Report Reason</th>
+                  <th>Date Filed</th>
+                  <th>Status</th>
+                  <th>Triage Actions</th>
+                </tr>
+              </thead>
+              <tbody id="reports-table-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW: ADMIN MANAGEMENT (SUPER_ADMIN ONLY)
+             ========================================== -->
+        <section id="view-admins" class="tab-view hidden super-admin-only">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Administrative Staff & Permissions</h1>
+              <div class="page-desc">Manage Super Administrators and Content Moderators (Restricted Access).</div>
+            </div>
+            <button id="btn-add-admin" class="btn btn-primary">+ Add New Staff</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Staff Member</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Last Login</th>
+                  <th>Created Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="admins-table-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW: AUDIT LOGS
+             ========================================== -->
+        <section id="view-audit" class="tab-view hidden">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Immutable Admin Audit Trail</h1>
+              <div class="page-desc">Every critical moderation decision and administrative action is cryptographically recorded.</div>
+            </div>
+          </div>
+
+          <div class="filter-bar">
+            <div class="filter-group">
+              <select id="audit-filter-action" class="select-control">
+                <option value="ALL">All Actions</option>
+                <option value="APPROVED_CONTENT">Approved Content</option>
+                <option value="REJECTED_CONTENT">Rejected Content</option>
+                <option value="REMOVED_CONTENT">Removed Content</option>
+                <option value="SUSPENDED_USER">Suspended User</option>
+                <option value="RESOLVED_REPORT">Resolved Report</option>
+                <option value="CREATED_ADMIN">Created Admin</option>
+                <option value="CHANGED_SETTINGS">Changed Settings</option>
+              </select>
+            </div>
+
+            <div class="filter-group">
+              <input type="text" id="audit-filter-search" class="input-control" placeholder="Search admin, target ID, reason..." style="width: 280px;">
+            </div>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Timestamp</th>
+                  <th>Administrator</th>
+                  <th>Action</th>
+                  <th>Target Type</th>
+                  <th>Target ID</th>
+                  <th>Reason / Details</th>
+                  <th>IP Address</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-tbody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- ==========================================
+             VIEW: SETTINGS (SUPER_ADMIN ONLY)
+             ========================================== -->
+        <section id="view-settings" class="tab-view hidden super-admin-only">
+          <div class="page-header">
+            <div>
+              <h1 class="page-title">Platform & Moderation Settings</h1>
+              <div class="page-desc">System configuration, Islamic moderation flags, and administrative security policies.</div>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
+            <!-- General Settings -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom: 16px;">General Platform Configuration</div>
+              <form id="form-general-settings">
+                <div class="form-group">
+                  <label class="form-label" for="setting-app-name">Application Name</label>
+                  <input type="text" id="setting-app-name" class="form-control" value="SEERAT" readonly>
+                </div>
+
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer;">
+                    <input type="checkbox" id="setting-maintenance-mode" style="accent-color: var(--primary-700);">
+                    <span>Maintenance Mode (Temporarily disable user app)</span>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer;">
+                    <input type="checkbox" id="setting-new-registration" style="accent-color: var(--primary-700);" checked>
+                    <span>Allow New User Registrations</span>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer;">
+                    <input type="checkbox" id="setting-moderation-enabled" style="accent-color: var(--primary-700);" checked>
+                    <span>Enforce Mandatory Moderation Queue</span>
+                  </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Save General Settings</button>
+              </form>
+            </div>
+
+            <!-- Moderation Settings -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom: 16px;">Islamic Content Moderation Rules</div>
+              <form id="form-moderation-settings">
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer;">
+                    <input type="checkbox" id="setting-auto-flag" style="accent-color: var(--primary-700);" checked>
+                    <span>Auto-flag suspicious keywords</span>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label style="display: flex; align-items: center; gap: 8px; font-size: 13.5px; cursor: pointer;">
+                    <input type="checkbox" id="setting-require-approval" style="accent-color: var(--primary-700);" checked>
+                    <span>Require Admin approval before content goes public</span>
+                  </label>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="setting-max-reports">Report Threshold (Auto-hold content)</label>
+                  <input type="number" id="setting-max-reports" class="form-control" value="3" min="1" max="20">
+                  <div class="form-help">Number of reports required to temporarily suspend content automatically.</div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Save Moderation Rules</button>
+              </form>
+            </div>
+
+            <!-- Security Settings -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom: 16px;">Administrative Security Policies</div>
+              <form id="form-security-settings">
+                <div class="form-group">
+                  <label class="form-label" for="setting-session-timeout">Admin Session Timeout (Minutes)</label>
+                  <input type="number" id="setting-session-timeout" class="form-control" value="120" min="15" max="1440">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="setting-max-attempts">Max Failed Login Attempts</label>
+                  <input type="number" id="setting-max-attempts" class="form-control" value="5" min="3" max="10">
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label" for="setting-lockout-duration">Lockout Duration (Minutes)</label>
+                  <input type="number" id="setting-lockout-duration" class="form-control" value="15" min="5" max="60">
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Save Security Policies</button>
+              </form>
+            </div>
+
+            <!-- Categories Card -->
+            <div class="card">
+              <div class="card-title" style="margin-bottom: 16px;">Active Islamic Categories</div>
+              <div id="settings-categories-list" style="display: flex; flex-direction: column; gap: 8px;"></div>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ====================================================================
+       MODALS
+       ==================================================================== -->
+
+  <!-- Modal: Media Video / Image Preview & Theological Verification -->
+  <div id="modal-media-preview" class="modal-backdrop">
+    <div class="modal-card large">
+      <div class="modal-header">
+        <div class="modal-title">Islamic Content Verification & Media Player</div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-media-preview')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="media-preview-container" class="media-preview-box"></div>
+        <div id="media-meta-details"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Structured Rejection Reason -->
+  <div id="modal-reject-content" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Reject Content Submission</div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-reject-content')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="reject-content-id">
+        <input type="hidden" id="reject-content-type">
+
+        <div class="form-group">
+          <label class="form-label" for="reject-reason-select">Select Mandatory Rejection Reason</label>
+          <select id="reject-reason-select" class="form-control" required>
+            <option value="">-- Choose reason --</option>
+            <option value="Not Islamic content">Not Islamic content</option>
+            <option value="Incorrect information">Incorrect information</option>
+            <option value="Copyright issue">Copyright issue</option>
+            <option value="Inappropriate content">Inappropriate content</option>
+            <option value="Spam">Spam</option>
+            <option value="Misleading information">Misleading information</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="reject-custom-notes">Theological Guidance / Additional Notes (Optional)</label>
+          <textarea id="reject-custom-notes" class="form-control" rows="3" placeholder="Provide constructive Islamic feedback or specific reason for the creator..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.closeModal('modal-reject-content')">Cancel</button>
+        <button class="btn btn-danger" onclick="ReviewQueue.submitRejection()">Confirm Rejection</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: User Details & Moderation History -->
+  <div id="modal-user-details" class="modal-backdrop">
+    <div class="modal-card large">
+      <div class="modal-header">
+        <div class="modal-title">User Account & Moderation File</div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-user-details')">✕</button>
+      </div>
+      <div class="modal-body" id="user-details-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.closeModal('modal-user-details')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Suspend User -->
+  <div id="modal-suspend-user" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Suspend User Account</div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-suspend-user')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="suspend-user-id">
+        <p style="font-size: 13.5px; color: var(--text-main); margin-bottom: 16px;">
+          You are about to suspend account <strong id="suspend-user-label">@user</strong>. Their posts and reels will be temporarily unlisted.
+        </p>
+        <div class="form-group">
+          <label class="form-label" for="suspend-reason-input">Reason for Suspension</label>
+          <textarea id="suspend-reason-input" class="form-control" rows="3" placeholder="Violated Islamic content guidelines / commercial spam..." required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.closeModal('modal-suspend-user')">Cancel</button>
+        <button class="btn btn-danger" onclick="Users.submitSuspension()">Confirm Suspension</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Resolve Report -->
+  <div id="modal-resolve-report" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Resolve Community Report</div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-resolve-report')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="resolve-report-id">
+        <div class="form-group">
+          <label class="form-label" for="resolve-action-select">Enforcement Action Taken</label>
+          <select id="resolve-action-select" class="form-control">
+            <option value="NONE">No Action Needed (False Positive)</option>
+            <option value="REMOVED_CONTENT">Remove Target Content</option>
+            <option value="SUSPENDED_USER">Suspend Target User</option>
+            <option value="WARNED_USER">Issued Formal Warning</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="resolve-notes-input">Resolution Notes</label>
+          <textarea id="resolve-notes-input" class="form-control" rows="3" placeholder="Explain the investigation findings and rationale..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.closeModal('modal-resolve-report')">Cancel</button>
+        <button class="btn btn-primary" onclick="Reports.submitResolve()">Save Resolution</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Report Details -->
+  <div id="modal-report-details" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Report Inspection</div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-report-details')">✕</button>
+      </div>
+      <div class="modal-body" id="report-details-modal-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.closeModal('modal-report-details')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Add New Staff Member (SUPER_ADMIN ONLY) -->
+  <div id="modal-add-admin" class="modal-backdrop">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Add Administrative Staff</div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-add-admin')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label" for="admin-form-name">Full Name</label>
+          <input type="text" id="admin-form-name" class="form-control" placeholder="e.g. Zayd Al-Ansari" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="admin-form-email">Email Address</label>
+          <input type="email" id="admin-form-email" class="form-control" placeholder="moderator@seerat.app" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="admin-form-password">Initial Password</label>
+          <input type="password" id="admin-form-password" class="form-control" placeholder="••••••••••••" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="admin-form-role">Administrative Role</label>
+          <select id="admin-form-role" class="form-control" required>
+            <option value="MODERATOR">MODERATOR (Review Queue, Reports, User Moderation)</option>
+            <option value="SUPER_ADMIN">SUPER_ADMIN (Full Platform & Staff Access)</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.closeModal('modal-add-admin')">Cancel</button>
+        <button class="btn btn-primary" onclick="Admins.submitNewAdmin()">Create Staff Member</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Generic Confirmation -->
+  <div id="modal-confirmation" class="modal-backdrop">
+    <div class="modal-card" style="max-width: 440px;">
+      <div class="modal-header">
+        <div class="modal-title" id="confirm-modal-title">Confirm Action</div>
+        <button class="modal-close-btn" onclick="App.closeModal('modal-confirmation')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-modal-message" style="font-size: 13.5px; color: var(--text-main);"></p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="App.closeModal('modal-confirmation')">Cancel</button>
+        <button id="modal-confirm-btn" class="btn btn-danger">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Alert Container -->
+  <div id="toast-container"></div>
+
+  <!-- Script Imports -->
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/reviewQueue.js"></script>
+  <script src="js/content.js"></script>
+  <script src="js/users.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/admins.js"></script>
+  <script src="js/audit.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
